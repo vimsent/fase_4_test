@@ -1,0 +1,103 @@
+// Especifica la versión de la sintaxis de Protocol Buffers.
+syntax = "proto3";
+
+// Define el paquete de Go que se generará. Evita colisiones de nombres.
+option go_package = "./grpc/proto;proto";
+
+// El servicio define un conjunto de funciones remotas.
+service LesterService {
+  rpc MichaelOffer (MichaelRequest) returns (MichaelResponse);
+  rpc IniciarNotificaciones (NotificacionRequest) returns (NotificacionResponse);
+  rpc DetenerNotificaciones (DetenerRequest) returns (DetenerResponse);
+}
+
+service TrevorService {
+  rpc Distraccion (TrevorRequest) returns (TrevorResponse);
+  rpc IniciarGolpe (GolpeRequest) returns (GolpeResponse);
+  rpc ConsultarEstrellas (EstrellasRequest) returns (EstrellasResponse);
+  rpc ObtenerBotin (BotinRequest) returns (BotinResponse);
+}
+
+service FranklinService {
+  rpc Distraccion (FranklinRequest) returns (FranklinResponse);
+  rpc IniciarGolpe (GolpeRequest) returns (GolpeResponse);
+  rpc ConsultarEstrellas (EstrellasRequest) returns (EstrellasResponse);
+  rpc ObtenerBotin (BotinRequest) returns (BotinResponse);
+}
+
+message MichaelRequest {
+  string offer = 1;
+}
+
+message MichaelResponse {
+  uint64 botin = 1;
+  int32 pFranklin = 2;
+  int32 pTrevor = 3;
+  int32 rPolicial = 4;
+  string pOferta = 5;
+}
+
+message TrevorRequest {
+  string notificar = 1;
+  int32 pTrevor = 2;
+}
+
+message TrevorResponse {
+  string resultado = 1;
+}
+
+message FranklinRequest {
+  string notificar = 1;
+  int32 pFranklin = 2;
+}
+
+message FranklinResponse {
+  string resultado = 1;
+}
+
+// Nuevos mensajes para Fase 3
+message GolpeRequest {
+  string personaje = 1;
+  int32 probabilidad = 2;
+  int32 riesgoPolicial = 3;
+}
+
+message GolpeResponse {
+  bool exito = 1;
+  string motivoFallo = 2;
+  int64 botinExtra = 3;
+  int32 estrellasFinales = 4;
+}
+
+message EstrellasRequest {
+  string personaje = 1;
+}
+
+message EstrellasResponse {
+  int32 estrellas = 1;
+}
+
+message NotificacionRequest {
+  string personaje = 1;
+  int32 riesgoPolicial = 2;
+}
+
+message NotificacionResponse {
+  bool iniciado = 1;
+}
+
+message DetenerRequest {
+  string personaje = 1;
+}
+
+message DetenerResponse {
+  bool detenido = 1;
+}
+
+message BotinRequest {
+  string personaje = 1;
+}
+
+message BotinResponse {
+  int64 botinTotal = 1;
+}
