@@ -166,8 +166,8 @@ func generarReporte(info HeistInfo) {
 }
 
 func main() {
-	log.Println("Esperando 15 segundos para iniciar el programa...")
-	time.Sleep(15 * time.Second)
+	log.Println("Esperando 30 segundos para iniciar el programa...")
+	time.Sleep(30 * time.Second)
 
 	conn, err := grpc.Dial(address_lester, grpc.WithInsecure())
 	if err != nil {
