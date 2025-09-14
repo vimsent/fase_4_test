@@ -151,57 +151,98 @@ func enviarPago(ctx context.Context, address string, monto int64, concepto strin
 }
 
 func generarReporte(info HeistInfo) {
-	file, err := os.Create("Reporte.txt")
-	if err != nil {
-		log.Printf("Error al crear archivo de reporte: %v", err)
-		return
-	}
-	defer file.Close()
+    // CORRECCIÓN: Crear directorio si no existe y manejar errores mejor
+    file, err := os.Create("Reporte.txt")
+    if err != nil {
+        log.Printf("Error al crear archivo de reporte: %v", err)
+        // Intentar crear en directorio temporal
+        file, err = os.Create("/tmp/Reporte.txt")
+        if err != nil {
+            log.Printf("Error al crear archivo en /tmp: %v", err)
+            return
+        }
+        log.Printf("Archivo creado en /tmp/Reporte.txt")
+    }
+    defer file.Close()
 
-	file.WriteString("=========================================================\n")
-	file.WriteString("==              REPORTE FINAL DE LA MISION            ==\n")
-	file.WriteString("=========================================================\n")
-	
-	if info.Exito {
-		file.WriteString(fmt.Sprintf("Mision: Asalto al Banco #%d\n", time.Now().Unix()%10000))
-		file.WriteString("Resultado Global: MISION COMPLETADA CON EXITO!\n\n")
-		
-		file.WriteString("--- REPARTO DEL BOTIN ---\n")
-		file.WriteString(fmt.Sprintf("Botin Base: $%d\n", info.Botin))
-		file.WriteString(fmt.Sprintf("Botin Extra (Habilidad de Chop): $%d\n", info.BotinExtra))
-		file.WriteString(fmt.Sprintf("Botin Total: $%d\n", info.BotinTotal))
-		
-		file.WriteString("---------------------------------------------------------\n")
-		file.WriteString(fmt.Sprintf("Pago a Franklin: $%d\n", info.PagoFranklin))
-		file.WriteString(fmt.Sprintf("Respuesta de Franklin: \"%s\"\n", info.RespuestaFranklin))
-		file.WriteString(fmt.Sprintf("Pago a Trevor: $%d\n", info.PagoTrevor))
-		file.WriteString(fmt.Sprintf("Respuesta de Trevor: \"%s\"\n", info.RespuestaTrevor))
-		file.WriteString(fmt.Sprintf("Pago a Lester: $%d (reparto) + $%d (resto)\n", info.PagoLester, info.Resto))
-		file.WriteString(fmt.Sprintf("Respuesta de Lester: \"%s\"\n", info.RespuestaLester))
-		file.WriteString(fmt.Sprintf("Pago a Michael: $%d\n", info.PagoMichael))
-		file.WriteString("---------------------------------------------------------\n")
-		file.WriteString(fmt.Sprintf("Saldo Final de la Operacion: $%d\n", info.BotinTotal))
-	} else {
-		file.WriteString(fmt.Sprintf("Mision: Asalto al Banco #%d\n", time.Now().Unix()%10000))
-		file.WriteString("Resultado Global: MISION FALLIDA\n\n")
-		file.WriteString("--- DETALLES DEL FRACASO ---\n")
-		file.WriteString(fmt.Sprintf("Fase del fracaso: %d\n", info.Fase))
-		
-		if info.Fase == 2 {
-			file.WriteString(fmt.Sprintf("Personaje: %s\n", info.Fase2))
-		} else if info.Fase == 3 {
-			file.WriteString(fmt.Sprintf("Personaje: %s\n", info.Fase3))
-		}
-		
-		file.WriteString(fmt.Sprintf("Motivo: %s\n", info.MotivoFallo))
-		file.WriteString(fmt.Sprintf("Botin perdido: $%d\n", info.Botin))
-		if info.BotinExtra > 0 {
-			file.WriteString(fmt.Sprintf("Botin extra perdido: $%d\n", info.BotinExtra))
-		}
-	}
-	
-	file.WriteString("=========================================================\n")
-	log.Println("Reporte generado: Reporte.txt")
+    file.WriteString("=========================================================\n")
+    file.WriteString("==              REPORTE FINAL DE LA MISION            ==\n")
+    file.WriteString("=========================================================\n")
+    
+    if info.Exito {
+        file.WriteString(fmt.Sprintf("Mision: Asalto al Banco #%d\n", time.Now().Unix()%10000))
+        file.WriteString("Resultado Global: MISION COMPLETADA CON EXITO!\n\n")
+        
+        file.WriteString("--- DETALLES DE LA MISION ---\n")
+        file.WriteString(fmt.Sprintf("Fase 2 - Distraccion: %s\n", info.Fase2))
+        file.WriteString(fmt.Sprintf("Fase 3 - Golpe Principal: %s\n", info.Fase3))
+        file.WriteString("\n")
+        
+        file.WriteString("--- REPARTO DEL BOTIN ---\n")
+        file.WriteString(fmt.Sprintf("Botin Base: $%d\n", info.Botin))
+        file.WriteString(fmt.Sprintf("Botin Extra (Habilidad de Chop): $%d\n", info.BotinExtra))
+        file.WriteString(fmt.Sprintf("Botin Total: $%d\n", info.BotinTotal))
+        file.WriteString("\n")
+        
+        // CORRECCIÓN: Verificar que los valores no sean 0 antes de mostrar
+        if info.BotinTotal > 0 {
+            file.WriteString("---------------------------------------------------------\n")
+            file.WriteString(fmt.Sprintf("Pago a Franklin: $%d\n", info.PagoFranklin))
+            if info.RespuestaFranklin != "" {
+                file.WriteString(fmt.Sprintf("Respuesta de Franklin: \"%s\"\n", info.RespuestaFranklin))
+            }
+            file.WriteString(fmt.Sprintf("Pago a Trevor: $%d\n", info.PagoTrevor))
+            if info.RespuestaTrevor != "" {
+                file.WriteString(fmt.Sprintf("Respuesta de Trevor: \"%s\"\n", info.RespuestaTrevor))
+            }
+            file.WriteString(fmt.Sprintf("Pago a Lester: $%d", info.PagoLester))
+            if info.Resto > 0 {
+                file.WriteString(fmt.Sprintf(" + $%d (resto)", info.Resto))
+            }
+            file.WriteString("\n")
+            if info.RespuestaLester != "" {
+                file.WriteString(fmt.Sprintf("Respuesta de Lester: \"%s\"\n", info.RespuestaLester))
+            }
+            file.WriteString(fmt.Sprintf("Pago a Michael: $%d\n", info.PagoMichael))
+            file.WriteString("---------------------------------------------------------\n")
+            
+            // Verificación de suma
+            totalPagado := info.PagoFranklin + info.PagoTrevor + info.PagoLester + info.PagoMichael + info.Resto
+            file.WriteString(fmt.Sprintf("Verificacion - Total Pagado: $%d\n", totalPagado))
+            file.WriteString(fmt.Sprintf("Verificacion - Botin Original: $%d\n", info.BotinTotal))
+            
+            if totalPagado == info.BotinTotal {
+                file.WriteString("✓ Los números cuadran perfectamente\n")
+            } else {
+                file.WriteString(fmt.Sprintf("⚠ DISCREPANCIA: Diferencia de $%d\n", info.BotinTotal - totalPagado))
+            }
+        } else {
+            file.WriteString("ERROR: No se pudo calcular el reparto (Botin Total = 0)\n")
+        }
+    } else {
+        file.WriteString(fmt.Sprintf("Mision: Asalto al Banco #%d\n", time.Now().Unix()%10000))
+        file.WriteString("Resultado Global: MISION FALLIDA\n\n")
+        file.WriteString("--- DETALLES DEL FRACASO ---\n")
+        file.WriteString(fmt.Sprintf("Fase del fracaso: %d\n", info.Fase))
+        
+        if info.Fase == 2 {
+            file.WriteString(fmt.Sprintf("Personaje que fallo: %s\n", info.Fase2))
+        } else if info.Fase == 3 {
+            file.WriteString(fmt.Sprintf("Personaje que fallo: %s\n", info.Fase3))
+        }
+        
+        file.WriteString(fmt.Sprintf("Motivo: %s\n", info.MotivoFallo))
+        file.WriteString(fmt.Sprintf("Botin perdido: $%d\n", info.Botin))
+        if info.BotinExtra > 0 {
+            file.WriteString(fmt.Sprintf("Botin extra perdido: $%d\n", info.BotinExtra))
+        }
+    }
+    
+    file.WriteString("=========================================================\n")
+    file.WriteString(fmt.Sprintf("Reporte generado: %s\n", time.Now().Format("2006-01-02 15:04:05")))
+    file.WriteString("=========================================================\n")
+    
+    log.Println("Reporte generado exitosamente: Reporte.txt")
 }
 
 func main() {
@@ -380,86 +421,123 @@ func main() {
 	heistInfo.Exito = true
 	
 	//------------------------------------FASE 4------------------------------------
-	log.Println("\n========== FASE 4: REPARTO DEL BOTÍN ==========")
-	
-	// Obtener el botín total del personaje que completó el golpe
-	botinTotal, err := obtenerBotinTotal(ctx, golpeAddress, golpePartner, useGolpeTrevor)
-	if err != nil {
-		log.Printf("Error al obtener el botín: %v", err)
-		botinTotal = int64(heistInfo.Botin) + heistInfo.BotinExtra
-	}
-	
-	heistInfo.BotinTotal = botinTotal
-	log.Printf("Botín total obtenido: $%d", botinTotal)
-	
-	// Calcular reparto
-	pagoPorPersona := botinTotal / 4
-	resto := botinTotal % 4
-	
-	log.Printf("Reparto calculado: $%d por persona", pagoPorPersona)
-	if resto > 0 {
-		log.Printf("Resto para Lester: $%d", resto)
-	}
-	
-	heistInfo.PagoFranklin = pagoPorPersona
-	heistInfo.PagoTrevor = pagoPorPersona
-	heistInfo.PagoLester = pagoPorPersona
-	heistInfo.PagoMichael = pagoPorPersona
-	heistInfo.Resto = resto
-	
-	// Pagar a Franklin
-	log.Printf("Pagando a Franklin: $%d", pagoPorPersona)
-	respFranklin, err := enviarPago(ctx, address_franklin, pagoPorPersona, "reparto")
-	if err != nil {
-		log.Printf("Error al pagar a Franklin: %v", err)
-		heistInfo.RespuestaFranklin = "Error en el pago"
-	} else {
-		heistInfo.RespuestaFranklin = respFranklin.Mensaje
-		log.Printf("Franklin responde: %s", respFranklin.Mensaje)
-	}
-	
-	// Pagar a Trevor
-	log.Printf("Pagando a Trevor: $%d", pagoPorPersona)
-	respTrevor, err := enviarPago(ctx, address_trevor, pagoPorPersona, "reparto")
-	if err != nil {
-		log.Printf("Error al pagar a Trevor: %v", err)
-		heistInfo.RespuestaTrevor = "Error en el pago"
-	} else {
-		heistInfo.RespuestaTrevor = respTrevor.Mensaje
-		log.Printf("Trevor responde: %s", respTrevor.Mensaje)
-	}
-	
-	// Pagar a Lester (reparto + resto)
-	totalLester := pagoPorPersona + resto
-	log.Printf("Pagando a Lester: $%d (reparto: $%d + resto: $%d)", totalLester, pagoPorPersona, resto)
-	
-	// Primero el reparto normal
-	respLester, err := enviarPago(ctx, address_lester, pagoPorPersona, "reparto")
-	if err != nil {
-		log.Printf("Error al pagar reparto a Lester: %v", err)
-	}
-	
-	// Luego el resto si existe
-	if resto > 0 {
-		respLesterResto, err := enviarPago(ctx, address_lester, resto, "resto")
-		if err != nil {
-			log.Printf("Error al pagar resto a Lester: %v", err)
-			heistInfo.RespuestaLester = "Error en el pago"
-		} else {
-			heistInfo.RespuestaLester = respLesterResto.Mensaje
-			log.Printf("Lester responde por el resto: %s", respLesterResto.Mensaje)
-		}
-	} else {
-		if respLester != nil {
-			heistInfo.RespuestaLester = respLester.Mensaje
-			log.Printf("Lester responde: %s", respLester.Mensaje)
-		}
-	}
-	
-	// Michael se queda con su parte
-	log.Printf("Michael se queda con: $%d", pagoPorPersona)
-	
-	// Generar reporte final
-	generarReporte(heistInfo)
-	log.Println("\n========== MISIÓN COMPLETADA CON ÉXITO ==========")
+log.Println("\n========== FASE 4: REPARTO DEL BOTÍN ==========")
+
+// CORRECCIÓN 1: Calcular el botín total correctamente
+var botinTotal int64
+
+// Intentar obtener el botín del personaje que completó el golpe
+botinObtenido, err := obtenerBotinTotal(ctx, golpeAddress, golpePartner, useGolpeTrevor)
+if err != nil {
+    log.Printf("Error al obtener el botín del personaje: %v", err)
+    // Usar el botín base + extra como fallback
+    botinTotal = int64(heistInfo.Botin) + heistInfo.BotinExtra
+    log.Printf("Usando botín calculado como fallback: $%d", botinTotal)
+} else if botinObtenido == 0 {
+    // CORRECCIÓN 2: Si el personaje devuelve 0, usar el botín calculado
+    botinTotal = int64(heistInfo.Botin) + heistInfo.BotinExtra
+    log.Printf("El personaje devolvió 0, usando botín calculado: $%d", botinTotal)
+} else {
+    botinTotal = botinObtenido
+    log.Printf("Botín obtenido del personaje: $%d", botinTotal)
+}
+
+// CORRECCIÓN 3: Verificar que el botín total sea mayor a 0
+if botinTotal <= 0 {
+    log.Printf("ERROR: Botín total es 0 o negativo. Abortando reparto.")
+    heistInfo.BotinTotal = 0
+    heistInfo.Exito = false
+    heistInfo.Fase = 4
+    heistInfo.MotivoFallo = "Error en el cálculo del botín total"
+    generarReporte(heistInfo)
+    return
+}
+
+heistInfo.BotinTotal = botinTotal
+log.Printf("Botín total confirmado: $%d", botinTotal)
+
+// Calcular reparto
+pagoPorPersona := botinTotal / 4
+resto := botinTotal % 4
+
+log.Printf("Reparto calculado: $%d por persona", pagoPorPersona)
+if resto > 0 {
+    log.Printf("Resto para Lester: $%d", resto)
+}
+
+heistInfo.PagoFranklin = pagoPorPersona
+heistInfo.PagoTrevor = pagoPorPersona
+heistInfo.PagoLester = pagoPorPersona
+heistInfo.PagoMichael = pagoPorPersona
+heistInfo.Resto = resto
+
+// CORRECCIÓN 4: Verificar que los pagos sean válidos antes de enviar
+if pagoPorPersona <= 0 {
+    log.Printf("ERROR: Pago por persona es 0 o negativo: $%d", pagoPorPersona)
+    heistInfo.RespuestaFranklin = "Pago inválido"
+    heistInfo.RespuestaTrevor = "Pago inválido"  
+    heistInfo.RespuestaLester = "Pago inválido"
+} else {
+    // Pagar a Franklin
+    log.Printf("Pagando a Franklin: $%d", pagoPorPersona)
+    respFranklin, err := enviarPago(ctx, address_franklin, pagoPorPersona, "reparto")
+    if err != nil {
+        log.Printf("Error al pagar a Franklin: %v", err)
+        heistInfo.RespuestaFranklin = "Error en el pago"
+    } else {
+        heistInfo.RespuestaFranklin = respFranklin.Mensaje
+        log.Printf("Franklin responde: %s", respFranklin.Mensaje)
+    }
+    
+    // Pagar a Trevor
+    log.Printf("Pagando a Trevor: $%d", pagoPorPersona)
+    respTrevor, err := enviarPago(ctx, address_trevor, pagoPorPersona, "reparto")
+    if err != nil {
+        log.Printf("Error al pagar a Trevor: %v", err)
+        heistInfo.RespuestaTrevor = "Error en el pago"
+    } else {
+        heistInfo.RespuestaTrevor = respTrevor.Mensaje
+        log.Printf("Trevor responde: %s", respTrevor.Mensaje)
+    }
+    
+    // Pagar a Lester (reparto + resto)
+    log.Printf("Pagando a Lester: $%d (reparto)", pagoPorPersona)
+    
+    // Primero el reparto normal
+    respLester, err := enviarPago(ctx, address_lester, pagoPorPersona, "reparto")
+    if err != nil {
+        log.Printf("Error al pagar reparto a Lester: %v", err)
+        heistInfo.RespuestaLester = "Error en el pago del reparto"
+    } else {
+        heistInfo.RespuestaLester = respLester.Mensaje
+        log.Printf("Lester responde por el reparto: %s", respLester.Mensaje)
+    }
+    
+    // Luego el resto si existe
+    if resto > 0 {
+        log.Printf("Pagando resto a Lester: $%d", resto)
+        respLesterResto, err := enviarPago(ctx, address_lester, resto, "resto")
+        if err != nil {
+            log.Printf("Error al pagar resto a Lester: %v", err)
+            heistInfo.RespuestaLester += " | Error en el resto"
+        } else {
+            heistInfo.RespuestaLester = respLesterResto.Mensaje
+            log.Printf("Lester responde por el resto: %s", respLesterResto.Mensaje)
+        }
+    }
+}
+
+// Michael se queda con su parte
+log.Printf("Michael se queda con: $%d", pagoPorPersona)
+
+// CORRECCIÓN 5: Asegurar que la generación del reporte siempre funcione
+log.Printf("Generando reporte con los siguientes datos:")
+log.Printf("  - Éxito: %v", heistInfo.Exito)
+log.Printf("  - Botín Total: $%d", heistInfo.BotinTotal)
+log.Printf("  - Pagos: Franklin=$%d, Trevor=$%d, Lester=$%d, Michael=$%d", 
+    heistInfo.PagoFranklin, heistInfo.PagoTrevor, heistInfo.PagoLester, heistInfo.PagoMichael)
+
+// Generar reporte final
+generarReporte(heistInfo)
+log.Println("\n========== MISIÓN COMPLETADA CON ÉXITO ==========")
 }

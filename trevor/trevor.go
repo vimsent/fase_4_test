@@ -172,12 +172,15 @@ func (s *server) IniciarGolpe(ctx context.Context, in *pb.GolpeRequest) (*pb.Gol
 	s.estrellas = 0
 	s.furiaActivada = false
 	s.limiteFracaso = 5
+
+	s.botinBase = 100000 
 	
 	probabilidad := in.GetProbabilidad()
 	turnosNecesarios := 200 - probabilidad
 	
 	log.Printf("Turnos necesarios para el golpe: %d", turnosNecesarios)
-	
+	log.Printf("Botín base establecido: $%d", s.botinBase)
+
 	turnos := int32(0)
 	consultaIntervalo := turnosNecesarios / 5 // Consultar cada 20% del progreso
 	if consultaIntervalo == 0 {
