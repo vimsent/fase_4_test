@@ -5,10 +5,13 @@ syntax = "proto3";
 option go_package = "./grpc/proto;proto";
 
 // El servicio define un conjunto de funciones remotas.
+
+
 service LesterService {
   rpc MichaelOffer (MichaelRequest) returns (MichaelResponse);
   rpc IniciarNotificaciones (NotificacionRequest) returns (NotificacionResponse);
   rpc DetenerNotificaciones (DetenerRequest) returns (DetenerResponse);
+  rpc RecibirPago (PagoRequest) returns (PagoResponse);  // NEW
 }
 
 service TrevorService {
@@ -16,6 +19,7 @@ service TrevorService {
   rpc IniciarGolpe (GolpeRequest) returns (GolpeResponse);
   rpc ConsultarEstrellas (EstrellasRequest) returns (EstrellasResponse);
   rpc ObtenerBotin (BotinRequest) returns (BotinResponse);
+  rpc RecibirPago (PagoRequest) returns (PagoResponse);  // NEW
 }
 
 service FranklinService {
@@ -23,6 +27,7 @@ service FranklinService {
   rpc IniciarGolpe (GolpeRequest) returns (GolpeResponse);
   rpc ConsultarEstrellas (EstrellasRequest) returns (EstrellasResponse);
   rpc ObtenerBotin (BotinRequest) returns (BotinResponse);
+  rpc RecibirPago (PagoRequest) returns (PagoResponse);  // NEW
 }
 
 message MichaelRequest {
@@ -100,4 +105,14 @@ message BotinRequest {
 
 message BotinResponse {
   int64 botinTotal = 1;
+}
+
+message PagoRequest {
+  int64 monto = 1;
+  string concepto = 2;  // "reparto" or "resto"
+}
+
+message PagoResponse {
+  bool correcto = 1;
+  string mensaje = 2;
 }

@@ -246,6 +246,38 @@ func (s *server) ObtenerBotin(ctx context.Context, in *pb.BotinRequest) (*pb.Bot
 	}, nil
 }
 
+// RecibirPago - Fase 4: Verificar el pago recibido
+func (s *server) RecibirPago(ctx context.Context, in *pb.PagoRequest) (*pb.PagoResponse, error) {
+	monto := in.GetMonto()
+	concepto := in.GetConcepto()
+	
+	log.Printf("Trevor recibió pago de $%d por concepto: %s", monto, concepto)
+	
+	// Calcular el pago esperado
+	pagoEsperado := int64(s.botinBase) / 4
+	
+	// Verificar si el pago es correcto
+	if monto == pagoEsperado {
+		log.Printf("Trevor confirma: Pago correcto")
+		return &pb.PagoResponse{
+			Correcto: true,
+			Mensaje:  "¡Justo lo que esperaba!",
+		}, nil
+	} else if monto < pagoEsperado {
+		log.Printf("Trevor enfadado: Pago insuficiente (esperaba $%d)", pagoEsperado)
+		return &pb.PagoResponse{
+			Correcto: false,
+			Mensaje:  fmt.Sprintf("¡¿QUÉ?! ¡Me estás robando! Esperaba $%d y me das $%d", pagoEsperado, monto),
+		}, nil
+	} else {
+		log.Printf("Trevor contento: Pago mayor al esperado")
+		return &pb.PagoResponse{
+			Correcto: true,
+			Mensaje:  "¡Ja! Más dinero para mí, perfecto.",
+		}, nil
+	}
+}
+
 func main() {
 	s := NewServer()
 	

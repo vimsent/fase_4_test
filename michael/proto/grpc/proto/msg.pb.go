@@ -824,6 +824,110 @@ func (x *BotinResponse) GetBotinTotal() int64 {
 	return 0
 }
 
+type PagoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Monto         int64                  `protobuf:"varint,1,opt,name=monto,proto3" json:"monto,omitempty"`
+	Concepto      string                 `protobuf:"bytes,2,opt,name=concepto,proto3" json:"concepto,omitempty"` // "reparto" or "resto"
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PagoRequest) Reset() {
+	*x = PagoRequest{}
+	mi := &file_msg_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PagoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PagoRequest) ProtoMessage() {}
+
+func (x *PagoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_msg_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PagoRequest.ProtoReflect.Descriptor instead.
+func (*PagoRequest) Descriptor() ([]byte, []int) {
+	return file_msg_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *PagoRequest) GetMonto() int64 {
+	if x != nil {
+		return x.Monto
+	}
+	return 0
+}
+
+func (x *PagoRequest) GetConcepto() string {
+	if x != nil {
+		return x.Concepto
+	}
+	return ""
+}
+
+type PagoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Correcto      bool                   `protobuf:"varint,1,opt,name=correcto,proto3" json:"correcto,omitempty"`
+	Mensaje       string                 `protobuf:"bytes,2,opt,name=mensaje,proto3" json:"mensaje,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PagoResponse) Reset() {
+	*x = PagoResponse{}
+	mi := &file_msg_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PagoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PagoResponse) ProtoMessage() {}
+
+func (x *PagoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_msg_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PagoResponse.ProtoReflect.Descriptor instead.
+func (*PagoResponse) Descriptor() ([]byte, []int) {
+	return file_msg_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *PagoResponse) GetCorrecto() bool {
+	if x != nil {
+		return x.Correcto
+	}
+	return false
+}
+
+func (x *PagoResponse) GetMensaje() string {
+	if x != nil {
+		return x.Mensaje
+	}
+	return ""
+}
+
 var File_msg_proto protoreflect.FileDescriptor
 
 const file_msg_proto_rawDesc = "" +
@@ -876,21 +980,30 @@ const file_msg_proto_rawDesc = "" +
 	"\rBotinResponse\x12\x1e\n" +
 	"\n" +
 	"botinTotal\x18\x01 \x01(\x03R\n" +
-	"botinTotal2\xc4\x01\n" +
+	"botinTotal\"?\n" +
+	"\vPagoRequest\x12\x14\n" +
+	"\x05monto\x18\x01 \x01(\x03R\x05monto\x12\x1a\n" +
+	"\bconcepto\x18\x02 \x01(\tR\bconcepto\"D\n" +
+	"\fPagoResponse\x12\x1a\n" +
+	"\bcorrecto\x18\x01 \x01(\bR\bcorrecto\x12\x18\n" +
+	"\amensaje\x18\x02 \x01(\tR\amensaje2\xf0\x01\n" +
 	"\rLesterService\x121\n" +
 	"\fMichaelOffer\x12\x0f.MichaelRequest\x1a\x10.MichaelResponse\x12D\n" +
 	"\x15IniciarNotificaciones\x12\x14.NotificacionRequest\x1a\x15.NotificacionResponse\x12:\n" +
-	"\x15DetenerNotificaciones\x12\x0f.DetenerRequest\x1a\x10.DetenerResponse2\xda\x01\n" +
+	"\x15DetenerNotificaciones\x12\x0f.DetenerRequest\x1a\x10.DetenerResponse\x12*\n" +
+	"\vRecibirPago\x12\f.PagoRequest\x1a\r.PagoResponse2\x86\x02\n" +
 	"\rTrevorService\x12.\n" +
 	"\vDistraccion\x12\x0e.TrevorRequest\x1a\x0f.TrevorResponse\x12-\n" +
 	"\fIniciarGolpe\x12\r.GolpeRequest\x1a\x0e.GolpeResponse\x12;\n" +
 	"\x12ConsultarEstrellas\x12\x11.EstrellasRequest\x1a\x12.EstrellasResponse\x12-\n" +
-	"\fObtenerBotin\x12\r.BotinRequest\x1a\x0e.BotinResponse2\xe0\x01\n" +
+	"\fObtenerBotin\x12\r.BotinRequest\x1a\x0e.BotinResponse\x12*\n" +
+	"\vRecibirPago\x12\f.PagoRequest\x1a\r.PagoResponse2\x8c\x02\n" +
 	"\x0fFranklinService\x122\n" +
 	"\vDistraccion\x12\x10.FranklinRequest\x1a\x11.FranklinResponse\x12-\n" +
 	"\fIniciarGolpe\x12\r.GolpeRequest\x1a\x0e.GolpeResponse\x12;\n" +
 	"\x12ConsultarEstrellas\x12\x11.EstrellasRequest\x1a\x12.EstrellasResponse\x12-\n" +
-	"\fObtenerBotin\x12\r.BotinRequest\x1a\x0e.BotinResponseB\x14Z\x12./grpc/proto;protob\x06proto3"
+	"\fObtenerBotin\x12\r.BotinRequest\x1a\x0e.BotinResponse\x12*\n" +
+	"\vRecibirPago\x12\f.PagoRequest\x1a\r.PagoResponseB\x14Z\x12./grpc/proto;protob\x06proto3"
 
 var (
 	file_msg_proto_rawDescOnce sync.Once
@@ -904,7 +1017,7 @@ func file_msg_proto_rawDescGZIP() []byte {
 	return file_msg_proto_rawDescData
 }
 
-var file_msg_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_msg_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_msg_proto_goTypes = []any{
 	(*MichaelRequest)(nil),       // 0: MichaelRequest
 	(*MichaelResponse)(nil),      // 1: MichaelResponse
@@ -922,32 +1035,40 @@ var file_msg_proto_goTypes = []any{
 	(*DetenerResponse)(nil),      // 13: DetenerResponse
 	(*BotinRequest)(nil),         // 14: BotinRequest
 	(*BotinResponse)(nil),        // 15: BotinResponse
+	(*PagoRequest)(nil),          // 16: PagoRequest
+	(*PagoResponse)(nil),         // 17: PagoResponse
 }
 var file_msg_proto_depIdxs = []int32{
 	0,  // 0: LesterService.MichaelOffer:input_type -> MichaelRequest
 	10, // 1: LesterService.IniciarNotificaciones:input_type -> NotificacionRequest
 	12, // 2: LesterService.DetenerNotificaciones:input_type -> DetenerRequest
-	2,  // 3: TrevorService.Distraccion:input_type -> TrevorRequest
-	6,  // 4: TrevorService.IniciarGolpe:input_type -> GolpeRequest
-	8,  // 5: TrevorService.ConsultarEstrellas:input_type -> EstrellasRequest
-	14, // 6: TrevorService.ObtenerBotin:input_type -> BotinRequest
-	4,  // 7: FranklinService.Distraccion:input_type -> FranklinRequest
-	6,  // 8: FranklinService.IniciarGolpe:input_type -> GolpeRequest
-	8,  // 9: FranklinService.ConsultarEstrellas:input_type -> EstrellasRequest
-	14, // 10: FranklinService.ObtenerBotin:input_type -> BotinRequest
-	1,  // 11: LesterService.MichaelOffer:output_type -> MichaelResponse
-	11, // 12: LesterService.IniciarNotificaciones:output_type -> NotificacionResponse
-	13, // 13: LesterService.DetenerNotificaciones:output_type -> DetenerResponse
-	3,  // 14: TrevorService.Distraccion:output_type -> TrevorResponse
-	7,  // 15: TrevorService.IniciarGolpe:output_type -> GolpeResponse
-	9,  // 16: TrevorService.ConsultarEstrellas:output_type -> EstrellasResponse
-	15, // 17: TrevorService.ObtenerBotin:output_type -> BotinResponse
-	5,  // 18: FranklinService.Distraccion:output_type -> FranklinResponse
-	7,  // 19: FranklinService.IniciarGolpe:output_type -> GolpeResponse
-	9,  // 20: FranklinService.ConsultarEstrellas:output_type -> EstrellasResponse
-	15, // 21: FranklinService.ObtenerBotin:output_type -> BotinResponse
-	11, // [11:22] is the sub-list for method output_type
-	0,  // [0:11] is the sub-list for method input_type
+	16, // 3: LesterService.RecibirPago:input_type -> PagoRequest
+	2,  // 4: TrevorService.Distraccion:input_type -> TrevorRequest
+	6,  // 5: TrevorService.IniciarGolpe:input_type -> GolpeRequest
+	8,  // 6: TrevorService.ConsultarEstrellas:input_type -> EstrellasRequest
+	14, // 7: TrevorService.ObtenerBotin:input_type -> BotinRequest
+	16, // 8: TrevorService.RecibirPago:input_type -> PagoRequest
+	4,  // 9: FranklinService.Distraccion:input_type -> FranklinRequest
+	6,  // 10: FranklinService.IniciarGolpe:input_type -> GolpeRequest
+	8,  // 11: FranklinService.ConsultarEstrellas:input_type -> EstrellasRequest
+	14, // 12: FranklinService.ObtenerBotin:input_type -> BotinRequest
+	16, // 13: FranklinService.RecibirPago:input_type -> PagoRequest
+	1,  // 14: LesterService.MichaelOffer:output_type -> MichaelResponse
+	11, // 15: LesterService.IniciarNotificaciones:output_type -> NotificacionResponse
+	13, // 16: LesterService.DetenerNotificaciones:output_type -> DetenerResponse
+	17, // 17: LesterService.RecibirPago:output_type -> PagoResponse
+	3,  // 18: TrevorService.Distraccion:output_type -> TrevorResponse
+	7,  // 19: TrevorService.IniciarGolpe:output_type -> GolpeResponse
+	9,  // 20: TrevorService.ConsultarEstrellas:output_type -> EstrellasResponse
+	15, // 21: TrevorService.ObtenerBotin:output_type -> BotinResponse
+	17, // 22: TrevorService.RecibirPago:output_type -> PagoResponse
+	5,  // 23: FranklinService.Distraccion:output_type -> FranklinResponse
+	7,  // 24: FranklinService.IniciarGolpe:output_type -> GolpeResponse
+	9,  // 25: FranklinService.ConsultarEstrellas:output_type -> EstrellasResponse
+	15, // 26: FranklinService.ObtenerBotin:output_type -> BotinResponse
+	17, // 27: FranklinService.RecibirPago:output_type -> PagoResponse
+	14, // [14:28] is the sub-list for method output_type
+	0,  // [0:14] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -964,7 +1085,7 @@ func file_msg_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_msg_proto_rawDesc), len(file_msg_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   3,
 		},

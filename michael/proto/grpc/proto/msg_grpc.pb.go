@@ -24,17 +24,17 @@ const (
 	LesterService_MichaelOffer_FullMethodName          = "/LesterService/MichaelOffer"
 	LesterService_IniciarNotificaciones_FullMethodName = "/LesterService/IniciarNotificaciones"
 	LesterService_DetenerNotificaciones_FullMethodName = "/LesterService/DetenerNotificaciones"
+	LesterService_RecibirPago_FullMethodName           = "/LesterService/RecibirPago"
 )
 
 // LesterServiceClient is the client API for LesterService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// El servicio define un conjunto de funciones remotas.
 type LesterServiceClient interface {
 	MichaelOffer(ctx context.Context, in *MichaelRequest, opts ...grpc.CallOption) (*MichaelResponse, error)
 	IniciarNotificaciones(ctx context.Context, in *NotificacionRequest, opts ...grpc.CallOption) (*NotificacionResponse, error)
 	DetenerNotificaciones(ctx context.Context, in *DetenerRequest, opts ...grpc.CallOption) (*DetenerResponse, error)
+	RecibirPago(ctx context.Context, in *PagoRequest, opts ...grpc.CallOption) (*PagoResponse, error)
 }
 
 type lesterServiceClient struct {
@@ -75,15 +75,24 @@ func (c *lesterServiceClient) DetenerNotificaciones(ctx context.Context, in *Det
 	return out, nil
 }
 
+func (c *lesterServiceClient) RecibirPago(ctx context.Context, in *PagoRequest, opts ...grpc.CallOption) (*PagoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PagoResponse)
+	err := c.cc.Invoke(ctx, LesterService_RecibirPago_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LesterServiceServer is the server API for LesterService service.
 // All implementations must embed UnimplementedLesterServiceServer
 // for forward compatibility.
-//
-// El servicio define un conjunto de funciones remotas.
 type LesterServiceServer interface {
 	MichaelOffer(context.Context, *MichaelRequest) (*MichaelResponse, error)
 	IniciarNotificaciones(context.Context, *NotificacionRequest) (*NotificacionResponse, error)
 	DetenerNotificaciones(context.Context, *DetenerRequest) (*DetenerResponse, error)
+	RecibirPago(context.Context, *PagoRequest) (*PagoResponse, error)
 	mustEmbedUnimplementedLesterServiceServer()
 }
 
@@ -102,6 +111,9 @@ func (UnimplementedLesterServiceServer) IniciarNotificaciones(context.Context, *
 }
 func (UnimplementedLesterServiceServer) DetenerNotificaciones(context.Context, *DetenerRequest) (*DetenerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DetenerNotificaciones not implemented")
+}
+func (UnimplementedLesterServiceServer) RecibirPago(context.Context, *PagoRequest) (*PagoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecibirPago not implemented")
 }
 func (UnimplementedLesterServiceServer) mustEmbedUnimplementedLesterServiceServer() {}
 func (UnimplementedLesterServiceServer) testEmbeddedByValue()                       {}
@@ -178,6 +190,24 @@ func _LesterService_DetenerNotificaciones_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LesterService_RecibirPago_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PagoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LesterServiceServer).RecibirPago(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LesterService_RecibirPago_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LesterServiceServer).RecibirPago(ctx, req.(*PagoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LesterService_ServiceDesc is the grpc.ServiceDesc for LesterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -197,6 +227,10 @@ var LesterService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "DetenerNotificaciones",
 			Handler:    _LesterService_DetenerNotificaciones_Handler,
 		},
+		{
+			MethodName: "RecibirPago",
+			Handler:    _LesterService_RecibirPago_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "msg.proto",
@@ -207,6 +241,7 @@ const (
 	TrevorService_IniciarGolpe_FullMethodName       = "/TrevorService/IniciarGolpe"
 	TrevorService_ConsultarEstrellas_FullMethodName = "/TrevorService/ConsultarEstrellas"
 	TrevorService_ObtenerBotin_FullMethodName       = "/TrevorService/ObtenerBotin"
+	TrevorService_RecibirPago_FullMethodName        = "/TrevorService/RecibirPago"
 )
 
 // TrevorServiceClient is the client API for TrevorService service.
@@ -217,6 +252,7 @@ type TrevorServiceClient interface {
 	IniciarGolpe(ctx context.Context, in *GolpeRequest, opts ...grpc.CallOption) (*GolpeResponse, error)
 	ConsultarEstrellas(ctx context.Context, in *EstrellasRequest, opts ...grpc.CallOption) (*EstrellasResponse, error)
 	ObtenerBotin(ctx context.Context, in *BotinRequest, opts ...grpc.CallOption) (*BotinResponse, error)
+	RecibirPago(ctx context.Context, in *PagoRequest, opts ...grpc.CallOption) (*PagoResponse, error)
 }
 
 type trevorServiceClient struct {
@@ -267,6 +303,16 @@ func (c *trevorServiceClient) ObtenerBotin(ctx context.Context, in *BotinRequest
 	return out, nil
 }
 
+func (c *trevorServiceClient) RecibirPago(ctx context.Context, in *PagoRequest, opts ...grpc.CallOption) (*PagoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PagoResponse)
+	err := c.cc.Invoke(ctx, TrevorService_RecibirPago_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TrevorServiceServer is the server API for TrevorService service.
 // All implementations must embed UnimplementedTrevorServiceServer
 // for forward compatibility.
@@ -275,6 +321,7 @@ type TrevorServiceServer interface {
 	IniciarGolpe(context.Context, *GolpeRequest) (*GolpeResponse, error)
 	ConsultarEstrellas(context.Context, *EstrellasRequest) (*EstrellasResponse, error)
 	ObtenerBotin(context.Context, *BotinRequest) (*BotinResponse, error)
+	RecibirPago(context.Context, *PagoRequest) (*PagoResponse, error)
 	mustEmbedUnimplementedTrevorServiceServer()
 }
 
@@ -296,6 +343,9 @@ func (UnimplementedTrevorServiceServer) ConsultarEstrellas(context.Context, *Est
 }
 func (UnimplementedTrevorServiceServer) ObtenerBotin(context.Context, *BotinRequest) (*BotinResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ObtenerBotin not implemented")
+}
+func (UnimplementedTrevorServiceServer) RecibirPago(context.Context, *PagoRequest) (*PagoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecibirPago not implemented")
 }
 func (UnimplementedTrevorServiceServer) mustEmbedUnimplementedTrevorServiceServer() {}
 func (UnimplementedTrevorServiceServer) testEmbeddedByValue()                       {}
@@ -390,6 +440,24 @@ func _TrevorService_ObtenerBotin_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TrevorService_RecibirPago_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PagoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrevorServiceServer).RecibirPago(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TrevorService_RecibirPago_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrevorServiceServer).RecibirPago(ctx, req.(*PagoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TrevorService_ServiceDesc is the grpc.ServiceDesc for TrevorService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -413,6 +481,10 @@ var TrevorService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ObtenerBotin",
 			Handler:    _TrevorService_ObtenerBotin_Handler,
 		},
+		{
+			MethodName: "RecibirPago",
+			Handler:    _TrevorService_RecibirPago_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "msg.proto",
@@ -423,6 +495,7 @@ const (
 	FranklinService_IniciarGolpe_FullMethodName       = "/FranklinService/IniciarGolpe"
 	FranklinService_ConsultarEstrellas_FullMethodName = "/FranklinService/ConsultarEstrellas"
 	FranklinService_ObtenerBotin_FullMethodName       = "/FranklinService/ObtenerBotin"
+	FranklinService_RecibirPago_FullMethodName        = "/FranklinService/RecibirPago"
 )
 
 // FranklinServiceClient is the client API for FranklinService service.
@@ -433,6 +506,7 @@ type FranklinServiceClient interface {
 	IniciarGolpe(ctx context.Context, in *GolpeRequest, opts ...grpc.CallOption) (*GolpeResponse, error)
 	ConsultarEstrellas(ctx context.Context, in *EstrellasRequest, opts ...grpc.CallOption) (*EstrellasResponse, error)
 	ObtenerBotin(ctx context.Context, in *BotinRequest, opts ...grpc.CallOption) (*BotinResponse, error)
+	RecibirPago(ctx context.Context, in *PagoRequest, opts ...grpc.CallOption) (*PagoResponse, error)
 }
 
 type franklinServiceClient struct {
@@ -483,6 +557,16 @@ func (c *franklinServiceClient) ObtenerBotin(ctx context.Context, in *BotinReque
 	return out, nil
 }
 
+func (c *franklinServiceClient) RecibirPago(ctx context.Context, in *PagoRequest, opts ...grpc.CallOption) (*PagoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PagoResponse)
+	err := c.cc.Invoke(ctx, FranklinService_RecibirPago_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FranklinServiceServer is the server API for FranklinService service.
 // All implementations must embed UnimplementedFranklinServiceServer
 // for forward compatibility.
@@ -491,6 +575,7 @@ type FranklinServiceServer interface {
 	IniciarGolpe(context.Context, *GolpeRequest) (*GolpeResponse, error)
 	ConsultarEstrellas(context.Context, *EstrellasRequest) (*EstrellasResponse, error)
 	ObtenerBotin(context.Context, *BotinRequest) (*BotinResponse, error)
+	RecibirPago(context.Context, *PagoRequest) (*PagoResponse, error)
 	mustEmbedUnimplementedFranklinServiceServer()
 }
 
@@ -512,6 +597,9 @@ func (UnimplementedFranklinServiceServer) ConsultarEstrellas(context.Context, *E
 }
 func (UnimplementedFranklinServiceServer) ObtenerBotin(context.Context, *BotinRequest) (*BotinResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ObtenerBotin not implemented")
+}
+func (UnimplementedFranklinServiceServer) RecibirPago(context.Context, *PagoRequest) (*PagoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecibirPago not implemented")
 }
 func (UnimplementedFranklinServiceServer) mustEmbedUnimplementedFranklinServiceServer() {}
 func (UnimplementedFranklinServiceServer) testEmbeddedByValue()                         {}
@@ -606,6 +694,24 @@ func _FranklinService_ObtenerBotin_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FranklinService_RecibirPago_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PagoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FranklinServiceServer).RecibirPago(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FranklinService_RecibirPago_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FranklinServiceServer).RecibirPago(ctx, req.(*PagoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FranklinService_ServiceDesc is the grpc.ServiceDesc for FranklinService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -628,6 +734,10 @@ var FranklinService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ObtenerBotin",
 			Handler:    _FranklinService_ObtenerBotin_Handler,
+		},
+		{
+			MethodName: "RecibirPago",
+			Handler:    _FranklinService_RecibirPago_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	address_lester   = "lester:50051"   // Usar nombres de servicio Docker
+	address_lester   = "lester:50051"
 	address_trevor   = "trevor:50052"
 	address_franklin = "franklin:50053"
 )
@@ -27,9 +27,19 @@ type HeistInfo struct {
 	Fase2      string // Quien hizo la distracción
 	Fase3      string // Quien hizo el golpe
 	BotinExtra int64
+	BotinTotal int64
 	Exito      bool
 	MotivoFallo string
 	Fase       int
+	// Para fase 4
+	PagoFranklin int64
+	PagoTrevor   int64
+	PagoLester   int64
+	PagoMichael  int64
+	Resto        int64
+	RespuestaFranklin string
+	RespuestaTrevor   string
+	RespuestaLester   string
 }
 
 func communicateWithDistractionService(ctx context.Context, address string, message string, exito int32, isTrevor bool) (string, error) {
@@ -56,7 +66,6 @@ func communicateWithDistractionService(ctx context.Context, address string, mess
 	}
 }
 
-// Nueva función para comunicar con el servicio de Golpe
 func communicateWithGolpeService(ctx context.Context, address string, probabilidad int32, riesgoPolicial int32, isTrevor bool) (*pb.GolpeResponse, error) {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
@@ -84,7 +93,6 @@ func communicateWithGolpeService(ctx context.Context, address string, probabilid
 	}
 }
 
-// Función para obtener el botín del personaje que completó el golpe
 func obtenerBotinTotal(ctx context.Context, address string, personaje string, isTrevor bool) (int64, error) {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
@@ -113,7 +121,35 @@ func obtenerBotinTotal(ctx context.Context, address string, personaje string, is
 	}
 }
 
-// Función para generar el reporte final
+// Nueva función para enviar pago a un personaje
+func enviarPago(ctx context.Context, address string, monto int64, concepto string) (*pb.PagoResponse, error) {
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	pagoReq := &pb.PagoRequest{
+		Monto:    monto,
+		Concepto: concepto,
+	}
+
+	// Determinar qué cliente usar basado en la dirección
+	switch address {
+	case address_lester:
+		client := pb.NewLesterServiceClient(conn)
+		return client.RecibirPago(ctx, pagoReq)
+	case address_trevor:
+		client := pb.NewTrevorServiceClient(conn)
+		return client.RecibirPago(ctx, pagoReq)
+	case address_franklin:
+		client := pb.NewFranklinServiceClient(conn)
+		return client.RecibirPago(ctx, pagoReq)
+	default:
+		return nil, fmt.Errorf("dirección desconocida: %s", address)
+	}
+}
+
 func generarReporte(info HeistInfo) {
 	file, err := os.Create("Reporte.txt")
 	if err != nil {
@@ -129,19 +165,22 @@ func generarReporte(info HeistInfo) {
 	if info.Exito {
 		file.WriteString(fmt.Sprintf("Mision: Asalto al Banco #%d\n", time.Now().Unix()%10000))
 		file.WriteString("Resultado Global: MISION COMPLETADA CON EXITO!\n\n")
-		file.WriteString("--- DETALLES DEL ATRACO ---\n")
-		file.WriteString(fmt.Sprintf("Fase 2 (Distracción): %s - EXITOSA\n", info.Fase2))
-		file.WriteString(fmt.Sprintf("Fase 3 (Golpe): %s - EXITOSA\n", info.Fase3))
-		file.WriteString("\n--- REPARTO DEL BOTIN ---\n")
+		
+		file.WriteString("--- REPARTO DEL BOTIN ---\n")
 		file.WriteString(fmt.Sprintf("Botin Base: $%d\n", info.Botin))
 		file.WriteString(fmt.Sprintf("Botin Extra (Habilidad de Chop): $%d\n", info.BotinExtra))
+		file.WriteString(fmt.Sprintf("Botin Total: $%d\n", info.BotinTotal))
 		
-		botinTotal := int64(info.Botin) + info.BotinExtra
-		file.WriteString(fmt.Sprintf("Botin Total: $%d\n", botinTotal))
-		
-		// TODO: Agregar lógica de reparto en Fase 4
-		file.WriteString("\n---------------------------------------------------------\n")
-		file.WriteString("Nota: Implementar Fase 4 para el reparto del botín\n")
+		file.WriteString("---------------------------------------------------------\n")
+		file.WriteString(fmt.Sprintf("Pago a Franklin: $%d\n", info.PagoFranklin))
+		file.WriteString(fmt.Sprintf("Respuesta de Franklin: \"%s\"\n", info.RespuestaFranklin))
+		file.WriteString(fmt.Sprintf("Pago a Trevor: $%d\n", info.PagoTrevor))
+		file.WriteString(fmt.Sprintf("Respuesta de Trevor: \"%s\"\n", info.RespuestaTrevor))
+		file.WriteString(fmt.Sprintf("Pago a Lester: $%d (reparto) + $%d (resto)\n", info.PagoLester, info.Resto))
+		file.WriteString(fmt.Sprintf("Respuesta de Lester: \"%s\"\n", info.RespuestaLester))
+		file.WriteString(fmt.Sprintf("Pago a Michael: $%d\n", info.PagoMichael))
+		file.WriteString("---------------------------------------------------------\n")
+		file.WriteString(fmt.Sprintf("Saldo Final de la Operacion: $%d\n", info.BotinTotal))
 	} else {
 		file.WriteString(fmt.Sprintf("Mision: Asalto al Banco #%d\n", time.Now().Unix()%10000))
 		file.WriteString("Resultado Global: MISION FALLIDA\n\n")
@@ -271,21 +310,18 @@ func main() {
 	//------------------------------------FASE 3------------------------------------
 	log.Println("\n========== INICIO FASE 3: EL GOLPE ==========")
 	
-	// Determinar quién hace el golpe (el que NO hizo la distracción)
 	var golpePartner string
 	var golpeAddress string
 	var golpeProbabilidad int32
 	var useGolpeTrevor bool
 	
 	if useTrevor {
-		// Si Trevor hizo la distracción, Franklin hace el golpe
 		golpePartner = "Franklin"
 		golpeAddress = address_franklin
 		golpeProbabilidad = heistInfo.PFranklin
 		useGolpeTrevor = false
 		heistInfo.Fase3 = "Franklin"
 	} else {
-		// Si Franklin hizo la distracción, Trevor hace el golpe
 		golpePartner = "Trevor"
 		golpeAddress = address_trevor
 		golpeProbabilidad = heistInfo.PTrevor
@@ -295,7 +331,6 @@ func main() {
 	
 	log.Printf("Enviando a %s para el golpe principal", golpePartner)
 	
-	// Notificar a Lester para que inicie las notificaciones de estrellas
 	log.Printf("Notificando a Lester para iniciar alertas de estrellas...")
 	notifResp, err := client.IniciarNotificaciones(ctx, &pb.NotificacionRequest{
 		Personaje:      golpePartner,
@@ -307,17 +342,14 @@ func main() {
 		log.Printf("Lester comenzó a enviar notificaciones de estrellas a %s", golpePartner)
 	}
 	
-	// Dar tiempo para que se establezca la comunicación
 	time.Sleep(1 * time.Second)
 	
-	// Iniciar el golpe
 	log.Printf("%s iniciando el golpe...", golpePartner)
 	golpeResp, err := communicateWithGolpeService(ctx, golpeAddress, golpeProbabilidad, heistInfo.RPolicial, useGolpeTrevor)
 	if err != nil {
 		log.Fatalf("Error al comunicarse con %s para el golpe: %v", golpePartner, err)
 	}
 	
-	// Detener notificaciones de Lester
 	detenerResp, err := client.DetenerNotificaciones(ctx, &pb.DetenerRequest{
 		Personaje: golpePartner,
 	})
@@ -327,7 +359,6 @@ func main() {
 		log.Printf("Notificaciones de estrellas detenidas")
 	}
 	
-	// Evaluar resultado del golpe
 	if !golpeResp.Exito {
 		log.Printf("✗ %s fracasó en el golpe: %s", golpePartner, golpeResp.MotivoFallo)
 		heistInfo.Exito = false
@@ -348,9 +379,85 @@ func main() {
 	heistInfo.BotinExtra = golpeResp.BotinExtra
 	heistInfo.Exito = true
 	
-	// TODO: Implementar Fase 4 - Reparto del botín
+	//------------------------------------FASE 4------------------------------------
 	log.Println("\n========== FASE 4: REPARTO DEL BOTÍN ==========")
-	log.Println("TODO: Implementar la fase 4 de reparto del botín")
+	
+	// Obtener el botín total del personaje que completó el golpe
+	botinTotal, err := obtenerBotinTotal(ctx, golpeAddress, golpePartner, useGolpeTrevor)
+	if err != nil {
+		log.Printf("Error al obtener el botín: %v", err)
+		botinTotal = int64(heistInfo.Botin) + heistInfo.BotinExtra
+	}
+	
+	heistInfo.BotinTotal = botinTotal
+	log.Printf("Botín total obtenido: $%d", botinTotal)
+	
+	// Calcular reparto
+	pagoPorPersona := botinTotal / 4
+	resto := botinTotal % 4
+	
+	log.Printf("Reparto calculado: $%d por persona", pagoPorPersona)
+	if resto > 0 {
+		log.Printf("Resto para Lester: $%d", resto)
+	}
+	
+	heistInfo.PagoFranklin = pagoPorPersona
+	heistInfo.PagoTrevor = pagoPorPersona
+	heistInfo.PagoLester = pagoPorPersona
+	heistInfo.PagoMichael = pagoPorPersona
+	heistInfo.Resto = resto
+	
+	// Pagar a Franklin
+	log.Printf("Pagando a Franklin: $%d", pagoPorPersona)
+	respFranklin, err := enviarPago(ctx, address_franklin, pagoPorPersona, "reparto")
+	if err != nil {
+		log.Printf("Error al pagar a Franklin: %v", err)
+		heistInfo.RespuestaFranklin = "Error en el pago"
+	} else {
+		heistInfo.RespuestaFranklin = respFranklin.Mensaje
+		log.Printf("Franklin responde: %s", respFranklin.Mensaje)
+	}
+	
+	// Pagar a Trevor
+	log.Printf("Pagando a Trevor: $%d", pagoPorPersona)
+	respTrevor, err := enviarPago(ctx, address_trevor, pagoPorPersona, "reparto")
+	if err != nil {
+		log.Printf("Error al pagar a Trevor: %v", err)
+		heistInfo.RespuestaTrevor = "Error en el pago"
+	} else {
+		heistInfo.RespuestaTrevor = respTrevor.Mensaje
+		log.Printf("Trevor responde: %s", respTrevor.Mensaje)
+	}
+	
+	// Pagar a Lester (reparto + resto)
+	totalLester := pagoPorPersona + resto
+	log.Printf("Pagando a Lester: $%d (reparto: $%d + resto: $%d)", totalLester, pagoPorPersona, resto)
+	
+	// Primero el reparto normal
+	respLester, err := enviarPago(ctx, address_lester, pagoPorPersona, "reparto")
+	if err != nil {
+		log.Printf("Error al pagar reparto a Lester: %v", err)
+	}
+	
+	// Luego el resto si existe
+	if resto > 0 {
+		respLesterResto, err := enviarPago(ctx, address_lester, resto, "resto")
+		if err != nil {
+			log.Printf("Error al pagar resto a Lester: %v", err)
+			heistInfo.RespuestaLester = "Error en el pago"
+		} else {
+			heistInfo.RespuestaLester = respLesterResto.Mensaje
+			log.Printf("Lester responde por el resto: %s", respLesterResto.Mensaje)
+		}
+	} else {
+		if respLester != nil {
+			heistInfo.RespuestaLester = respLester.Mensaje
+			log.Printf("Lester responde: %s", respLester.Mensaje)
+		}
+	}
+	
+	// Michael se queda con su parte
+	log.Printf("Michael se queda con: $%d", pagoPorPersona)
 	
 	// Generar reporte final
 	generarReporte(heistInfo)

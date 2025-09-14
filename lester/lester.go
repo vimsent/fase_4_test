@@ -269,6 +269,30 @@ func (s *server) DetenerNotificaciones(ctx context.Context, in *pb.DetenerReques
 	}, nil
 }
 
+// RecibirPago - Fase 4: Verificar el pago recibido
+func (s *server) RecibirPago(ctx context.Context, in *pb.PagoRequest) (*pb.PagoResponse, error) {
+	monto := in.GetMonto()
+	concepto := in.GetConcepto()
+	
+	log.Printf("Lester recibió pago de $%d por concepto: %s", monto, concepto)
+	
+	// Lester siempre está satisfecho con cualquier pago que reciba
+	if concepto == "resto" {
+		log.Printf("Lester recibe el resto del botín: $%d", monto)
+		return &pb.PagoResponse{
+			Correcto: true,
+			Mensaje:  fmt.Sprintf("Perfecto, $%d extra para mí. Un placer hacer negocios.", monto),
+		}, nil
+	}
+	
+	// Para el reparto normal
+	log.Printf("Lester confirma recepción del pago")
+	return &pb.PagoResponse{
+		Correcto: true,
+		Mensaje:  "Un placer hacer negocios.",
+	}, nil
+}
+
 func main() {
 	s := NewServer()
 
